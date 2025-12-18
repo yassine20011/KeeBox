@@ -49,9 +49,15 @@ QString CreateDatabaseDialog::getFilePath() const
 
 void CreateDatabaseDialog::onBrowseButtonClicked()
 {
+    QString defaultName = getDatabaseName();
+    if (defaultName.isEmpty()) {
+        defaultName = "database";
+    }
+    defaultName += ".db";
+    
     QString fileName = QFileDialog::getSaveFileName(this,
         tr("Save Database File"),
-        QDir::homePath(),
+        QDir::homePath() + QDir::separator() + defaultName,
         tr("SQLCipher Database (*.db);;All Files (*)"));
 
     if (!fileName.isEmpty()) {
