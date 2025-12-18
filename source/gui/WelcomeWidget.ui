@@ -142,7 +142,6 @@
   <zorder>welcomeLabel</zorder>
   <zorder>buttonNewDatabase</zorder>
   <zorder>buttonOpenDatabase</zorder>
-  <zorder>buttonImport</zorder>
   <zorder>recentListWidget</zorder>
  </widget>
  <resources/>

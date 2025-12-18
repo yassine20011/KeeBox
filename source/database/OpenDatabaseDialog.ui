@@ -139,7 +139,6 @@
   <tabstop>browseButton</tabstop>
   <tabstop>passwordLineEdit</tabstop>
   <tabstop>showPasswordCheckBox</tabstop>
-  <tabstop>rememberPasswordCheckBox</tabstop>
   <tabstop>buttonBox</tabstop>
  </tabstops>
 </ui>
