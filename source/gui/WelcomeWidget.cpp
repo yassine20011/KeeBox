@@ -13,7 +13,6 @@ WelcomeWidget::WelcomeWidget(QWidget *parent)
     // Connect UI signals
     connect(ui->buttonNewDatabase, &QPushButton::clicked, this, &WelcomeWidget::onNewDatabase);
     connect(ui->buttonOpenDatabase, &QPushButton::clicked, this, &WelcomeWidget::onOpenDatabase);
-    connect(ui->buttonImport, &QPushButton::clicked, this, &WelcomeWidget::onImportFile);
     connect(ui->recentListWidget, &QListWidget::itemClicked, this, &WelcomeWidget::onRecentItemClicked);
 
     // Example recent databases
