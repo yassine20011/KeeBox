@@ -3,6 +3,10 @@
 #include <QWidget>
 #include <QListWidgetItem>
 #include <QSqlDatabase>
+#include <QFileDialog>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <QSettings>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class WelcomeWidget; }
@@ -24,6 +28,9 @@ private slots:
 
 private:
     bool createNewDatabase(const QString &filePath, const QString &password);
+    bool openDatabase(const QString &filePath, const QString &password);
+    void saveRecentDatabases();
+    void loadRecentDatabases();
 
 private:
     Ui::WelcomeWidget *ui;

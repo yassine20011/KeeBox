@@ -1,6 +1,7 @@
 #include "./WelcomeWidget.h"
 #include "./ui_WelcomeWidget.h"
 #include "../database/CreateDatabaseDialog.h"
+#include "../database/OpenDatabaseDialog.h"
 
 #include <QMessageBox>
 #include <QListWidgetItem>
@@ -8,6 +9,7 @@
 #include <QDir>
 #include <QSqlQuery>
 #include <QSqlError>
+#include <QSettings>
 
 WelcomeWidget::WelcomeWidget(QWidget *parent)
     : QWidget(parent)
@@ -18,11 +20,10 @@ WelcomeWidget::WelcomeWidget(QWidget *parent)
     // Connect UI signals
     connect(ui->buttonNewDatabase, &QPushButton::clicked, this, &WelcomeWidget::onNewDatabase);
     connect(ui->buttonOpenDatabase, &QPushButton::clicked, this, &WelcomeWidget::onOpenDatabase);
-    connect(ui->recentListWidget, &QListWidget::itemClicked, this, &WelcomeWidget::onRecentItemClicked);
+    connect(ui->recentListWidget, &QListWidget::itemDoubleClicked, this, &WelcomeWidget::onRecentItemClicked);
 
-    // Example recent databases
-    ui->recentListWidget->addItem("ExampleDB1.kdbx");
-    ui->recentListWidget->addItem("ExampleDB2.kdbx");
+    // Load recent databases
+    loadRecentDatabases();
 }
 
 WelcomeWidget::~WelcomeWidget()
@@ -126,7 +127,95 @@ bool WelcomeWidget::createNewDatabase(const QString &filePath, const QString &pa
 
 void WelcomeWidget::onOpenDatabase()
 {
-    QMessageBox::information(this, "Open Database", "Open Database clicked");
+    OpenDatabaseDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        QString filePath = dialog.getFilePath();
+        QString password = dialog.getPassword();
+        
+        // Try to open the database
+        if (openDatabase(filePath, password)) {
+            // Save to recent databases if not already in the list
+            QString fileName = QFileInfo(filePath).fileName();
+            bool found = false;
+            for (int i = 0; i < ui->recentListWidget->count(); ++i) {
+                if (ui->recentListWidget->item(i)->text() == fileName) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                ui->recentListWidget->insertItem(0, fileName);
+                
+                // Save recent databases to settings
+                saveRecentDatabases();
+            }
+            
+            // TODO: Emit signal or handle successful database opening
+            QMessageBox::information(this, tr("Success"), 
+                tr("Database opened successfully!"));
+        } else {
+            QMessageBox::critical(this, tr("Error"), 
+                tr("Failed to open database. Please check the password and try again."));
+        }
+    }
+}
+
+void WelcomeWidget::saveRecentDatabases()
+{
+    QSettings settings("KeeBox", "KeeBox");
+    QStringList recentDbs;
+    
+    for (int i = 0; i < ui->recentListWidget->count() && i < 10; ++i) {
+        recentDbs << ui->recentListWidget->item(i)->text();
+    }
+    
+    settings.setValue("recentDatabases", recentDbs);
+}
+
+void WelcomeWidget::loadRecentDatabases()
+{
+    QSettings settings("KeeBox", "KeeBox");
+    QStringList recentDbs = settings.value("recentDatabases").toStringList();
+    
+    ui->recentListWidget->clear();
+    for (const QString &db : recentDbs) {
+        if (QFile::exists(db)) {
+            ui->recentListWidget->addItem(db);
+        }
+    }
+}
+
+bool WelcomeWidget::openDatabase(const QString &filePath, const QString &password)
+{
+    // Close any existing database connection
+    QSqlDatabase db = QSqlDatabase::database();
+    if (db.isOpen()) {
+        db.close();
+    }
+    
+    // Set up the database connection
+    db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(filePath);
+    
+    // Set the encryption key (password)
+    db.setPassword(password);
+    
+    // Try to open the database
+    if (!db.open()) {
+        qWarning() << "Failed to open database:" << db.lastError().text();
+        return false;
+    }
+    
+    // Verify the database can be accessed by running a simple query
+    QSqlQuery query;
+    if (!query.exec("PRAGMA integrity_check;")) {
+        qWarning() << "Database integrity check failed:" << query.lastError().text();
+        db.close();
+        return false;
+    }
+    
+    // If we got here, the database was opened successfully
+    return true;
 }
 
 void WelcomeWidget::onImportFile()

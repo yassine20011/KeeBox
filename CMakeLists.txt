@@ -30,6 +30,10 @@ set(PROJECT_SOURCES
     source/database/CreateDatabaseDialog.cpp
     source/database/CreateDatabaseDialog.h
     source/database/CreateDatabaseDialog.ui
+    
+    source/database/OpenDatabaseDialog.cpp
+    source/database/OpenDatabaseDialog.h
+    source/database/OpenDatabaseDialog.ui
 
     resources/resources.qrc
 )
