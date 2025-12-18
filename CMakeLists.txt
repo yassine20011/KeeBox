@@ -16,27 +16,32 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SQLCipher REQUIRED IMPORTED_TARGET sqlcipher)
 
-set(PROJECT_SOURCES
-    source/main.cpp
-
-    source/gui/MainWindow.cpp
-    source/gui/MainWindow.h
-    source/gui/MainWindow.ui
-
-    source/gui/WelcomeWidget.cpp
-    source/gui/WelcomeWidget.h
-    source/gui/WelcomeWidget.ui
-
-    source/database/CreateDatabaseDialog.cpp
-    source/database/CreateDatabaseDialog.h
-    source/database/CreateDatabaseDialog.ui
-    
-    source/database/OpenDatabaseDialog.cpp
-    source/database/OpenDatabaseDialog.h
-    source/database/OpenDatabaseDialog.ui
-
-    resources/resources.qrc
+# Find all source files
+file(GLOB_RECURSE PROJECT_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/*.h"
 )
+
+# Find all UI files
+file(GLOB_RECURSE UI_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/*.ui"
+)
+
+# Find all resource files
+file(GLOB_RECURSE RESOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.qrc"
+)
+
+# Combine all sources
+set(PROJECT_SOURCES
+    ${PROJECT_SOURCES}
+    ${UI_FILES}
+    ${RESOURCE_FILES}
+)
+
+# Create source groups for better IDE organization
+source_group("Source Files" FILES ${PROJECT_SOURCES} ${UI_FILES})
+source_group("Resource Files" FILES ${RESOURCE_FILES})
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(KeeBox
