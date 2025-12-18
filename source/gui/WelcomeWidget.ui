@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WelcomeWidget</class>
+ <widget class="QWidget" name="WelcomeWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>16</number>
+   </property>
+   <!-- Logo -->
+   <item alignment="Qt::AlignCenter">
+    <widget class="QLabel" name="logoLabel">
+     <property name="pixmap">
+      <pixmap resource="../../resources/resources.qrc">:/logo/logo_350x350.png</pixmap>
+     </property>
+     <property name="scaledContents">
+      <bool>true</bool>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>150</width>
+       <height>150</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   
+   <!-- Welcome Message -->
+   <item alignment="Qt::AlignCenter">
+   <widget class="QLabel" name="welcomeLabel">
+    <property name="text">
+      <string>
+        &lt;html&gt;
+        &lt;head/&gt;
+        &lt;body&gt;
+        &lt;p&gt;
+        &lt;span style="font-size:24pt; font-weight:500;"&gt;
+          Welcome to KeeBox
+        &lt;/span&gt;
+        &lt;/p&gt;
+        &lt;/body&gt;
+        &lt;/html&gt;
+      </string>
+    </property>
+   </widget>
+   </item>
+   
+   <!-- Buttons -->
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonNewDatabase">
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+        min-width: 200px;
+        padding: 8px 16px;
+      </string>
+     </property>
+     <property name="text">
+      <string>New Database</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonOpenDatabase">
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+        min-width: 200px;
+        padding: 8px 16px;
+      </string>
+     </property>
+     <property name="text">
+      <string>Open Database</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="buttonImport">
+     <property name="minimumSize">
+      <size>
+       <width>200</width>
+       <height>40</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+        min-width: 200px;
+        padding: 8px 16px;
+      </string>
+     </property>
+     <property name="text">
+      <string>Import File</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer_2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
+    <widget class="QLabel">
+     <property name="text">
+      <string>Recent Databases</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-size: 11pt; font-weight: normal; color: #a0a0a0;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QListWidget" name="recentListWidget">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::SingleSelection</enum>
+     </property>
+    </widget>
+   </item>
+  </layout>
+  <zorder>logoLabel</zorder>
+  <zorder>welcomeLabel</zorder>
+  <zorder>buttonNewDatabase</zorder>
+  <zorder>buttonOpenDatabase</zorder>
+  <zorder>buttonImport</zorder>
+  <zorder>recentListWidget</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -14,9 +14,15 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
     source/main.cpp
-    source/gui/windows/mainWindow.cpp
-    source/gui/windows/mainWindow.h
-    source/gui/windows/mainWindow.ui
+
+    source/gui/MainWindow.cpp
+    source/gui/MainWindow.h
+    source/gui/MainWindow.ui
+
+    source/gui/WelcomeWidget.cpp
+    source/gui/WelcomeWidget.h
+    source/gui/WelcomeWidget.ui
+
     resources/resources.qrc
 )
 
