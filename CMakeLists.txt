@@ -9,8 +9,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
+
+# Find SQLCipher using pkg-config
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(SQLCipher REQUIRED IMPORTED_TARGET sqlcipher)
 
 set(PROJECT_SOURCES
     source/main.cpp
@@ -23,6 +27,10 @@ set(PROJECT_SOURCES
     source/gui/WelcomeWidget.h
     source/gui/WelcomeWidget.ui
 
+    source/database/CreateDatabaseDialog.cpp
+    source/database/CreateDatabaseDialog.h
+    source/database/CreateDatabaseDialog.ui
+
     resources/resources.qrc
 )
 
@@ -30,6 +38,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(KeeBox
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+    )
+    
+    target_link_libraries(KeeBox PRIVATE 
+        Qt${QT_VERSION_MAJOR}::Widgets 
+        Qt${QT_VERSION_MAJOR}::Sql
+        PkgConfig::SQLCipher
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET KeeBox APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -49,7 +63,10 @@ else()
     endif()
 endif()
 
-target_link_libraries(KeeBox PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(KeeBox PRIVATE 
+    Qt${QT_VERSION_MAJOR}::Widgets
+    PkgConfig::SQLCipher
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

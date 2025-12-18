@@ -81,7 +81,7 @@
       </string>
      </property>
      <property name="text">
-      <string>New Database</string>
+      <string>Create Database</string>
      </property>
     </widget>
    </item>

@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QListWidgetItem>
+#include <QSqlDatabase>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class WelcomeWidget; }
@@ -20,6 +21,9 @@ private slots:
     void onOpenDatabase();
     void onImportFile();
     void onRecentItemClicked(QListWidgetItem *item);
+
+private:
+    bool createNewDatabase(const QString &filePath, const QString &password);
 
 private:
     Ui::WelcomeWidget *ui;
