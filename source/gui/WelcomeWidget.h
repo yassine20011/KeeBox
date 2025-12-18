@@ -9,29 +9,30 @@
 #include <QSettings>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class WelcomeWidget; }
+namespace Ui {
+  class WelcomeWidget;
+}
 QT_END_NAMESPACE
 
-class WelcomeWidget : public QWidget
-{
-    Q_OBJECT
+class WelcomeWidget : public QWidget {
+  Q_OBJECT
 
-public:
+  public:
     explicit WelcomeWidget(QWidget *parent = nullptr);
     ~WelcomeWidget();
 
-private slots:
-    void onNewDatabase();
+    private slots:
+      void onNewDatabase();
     void onOpenDatabase();
     void onImportFile();
     void onRecentItemClicked(QListWidgetItem *item);
 
-private:
+  private:
     bool createNewDatabase(const QString &filePath, const QString &password);
     bool openDatabase(const QString &filePath, const QString &password);
     void saveRecentDatabases();
     void loadRecentDatabases();
 
-private:
+  private:
     Ui::WelcomeWidget *ui;
 };

@@ -4,24 +4,23 @@
 #include <QString>
 
 namespace Ui {
-class OpenDatabaseDialog;
+  class OpenDatabaseDialog;
 }
 
-class OpenDatabaseDialog : public QDialog
-{
-    Q_OBJECT
+class OpenDatabaseDialog : public QDialog {
+  Q_OBJECT
 
-public:
+  public:
     explicit OpenDatabaseDialog(QWidget *parent = nullptr);
     ~OpenDatabaseDialog();
 
     QString getFilePath() const;
     QString getPassword() const;
 
-private slots:
-    void on_browseButton_clicked();
+    private slots:
+      void on_browseButton_clicked();
     void validateInput();
 
-private:
+  private:
     Ui::OpenDatabaseDialog *ui;
 };

@@ -4,14 +4,13 @@
 #include <QString>
 
 namespace Ui {
-class CreateDatabaseDialog;
+  class CreateDatabaseDialog;
 }
 
-class CreateDatabaseDialog : public QDialog
-{
-    Q_OBJECT
+class CreateDatabaseDialog : public QDialog {
+  Q_OBJECT
 
-public:
+  public:
     explicit CreateDatabaseDialog(QWidget *parent = nullptr);
     ~CreateDatabaseDialog();
 
@@ -19,10 +18,10 @@ public:
     QString getPassword() const;
     QString getFilePath() const;
 
-private slots:
-    void onBrowseButtonClicked();
+    private slots:
+      void onBrowseButtonClicked();
     void validateInputs();
 
-private:
+  private:
     Ui::CreateDatabaseDialog *ui;
 };
