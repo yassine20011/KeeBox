@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Vault</string>
+   <string>KeeBox - Local Password Manager</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -173,6 +173,30 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="searchLineEdit">
+        <property name="maximumSize">
+         <size>
+          <width>250</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string>QLineEdit {
+    color: white;
+}
+QLineEdit::placeholder {
+    color: white;
+}</string>
+        </property>
+        <property name="placeholderText">
+         <string>Search entries...</string>
+        </property>
+        <property name="clearButtonEnabled">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>

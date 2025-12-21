@@ -31,6 +31,7 @@ public:
     void ensureRootGroup();
     QList<Group> getGroups(int parentId = 0);
     QList<Entry> getEntries(int groupId);
+    QList<Entry> searchEntries(const QString& query);
     int createGroup(const QString& name, int parentId = 0);
     bool updateGroup(int id, const QString& name);
     bool deleteGroup(int id);

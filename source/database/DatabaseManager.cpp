@@ -117,6 +117,39 @@ QList<DatabaseManager::Entry> DatabaseManager::getEntries(int groupId) {
     return list;
 }
 
+QList<DatabaseManager::Entry> DatabaseManager::searchEntries(const QString& query) {
+    QList<Entry> list;
+    if (!m_db || query.isEmpty()) return list;
+    
+    const char* sql = "SELECT id, group_id, title, username, password, url, notes FROM entries "
+                      "WHERE title LIKE ? OR username LIKE ? OR url LIKE ? OR notes LIKE ?";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(m_db, sql, -1, &stmt, nullptr) != SQLITE_OK) return list;
+    
+    QString likeQuery = "%" + query + "%";
+    QByteArray queryBytes = likeQuery.toUtf8();
+    
+    sqlite3_bind_text(stmt, 1, queryBytes.constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, queryBytes.constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, queryBytes.constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, queryBytes.constData(), -1, SQLITE_TRANSIENT);
+    
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        Entry e;
+        e.id = sqlite3_column_int(stmt, 0);
+        e.groupId = sqlite3_column_int(stmt, 1);
+        e.title = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 2));
+        e.username = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 3));
+        e.password = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 4));
+        e.url = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 5));
+        e.notes = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 6));
+        list.append(e);
+    }
+    
+    sqlite3_finalize(stmt);
+    return list;
+}
+
 bool DatabaseManager::updateGroup(int id, const QString& name) {
     if (!m_db) return false;
     

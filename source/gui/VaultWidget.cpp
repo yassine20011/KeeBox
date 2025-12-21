@@ -31,6 +31,9 @@ VaultWidget::VaultWidget(QWidget *parent)
     connect(ui->editEntryButton, &QToolButton::clicked, this, &VaultWidget::onEditEntry);
     connect(ui->deleteEntryButton, &QToolButton::clicked, this, &VaultWidget::onDeleteEntry);
     
+    // Search Connection
+    connect(ui->searchLineEdit, &QLineEdit::textChanged, this, &VaultWidget::onSearchTextChanged);
+    
     // Table interactions
     connect(ui->entriesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem*){ onEditEntry(); });
 
@@ -226,6 +229,31 @@ void VaultWidget::onDeleteEntry() {
 void VaultWidget::onLockDatabase() {
     DatabaseManager::instance().closeDatabase();
     emit lockRequested();
+}
+
+void VaultWidget::onSearchTextChanged(const QString& text) {
+    if (text.isEmpty()) {
+        // Return to group view
+        QTreeWidgetItem* current = ui->groupsTree->currentItem();
+        if (current) {
+            onGroupSelected(current, 0);
+        } else {
+            ui->entriesTable->setRowCount(0);
+        }
+        return;
+    }
+    
+    ui->entriesTable->setRowCount(0);
+    m_currentEntries = DatabaseManager::instance().searchEntries(text);
+    
+    for (const auto& entry : m_currentEntries) {
+        int row = ui->entriesTable->rowCount();
+        ui->entriesTable->insertRow(row);
+        
+        ui->entriesTable->setItem(row, 0, new QTableWidgetItem(entry.title));
+        ui->entriesTable->setItem(row, 1, new QTableWidgetItem(entry.username));
+        ui->entriesTable->setItem(row, 2, new QTableWidgetItem(entry.url));
+    }
 }
 
 void VaultWidget::loadEntries(int groupId) {

@@ -26,6 +26,7 @@ private slots:
     void onEditEntry();
     void onDeleteEntry();
     void onLockDatabase();
+    void onSearchTextChanged(const QString& text);
 
 private:
     void refreshGroups();
