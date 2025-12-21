@@ -1,9 +1,9 @@
 #include "VaultWidget.h"
 #include "ui_VaultWidget.h"
+#include "EntryDialog.h"
 #include "../database/DatabaseManager.h"
 
 #include <QHeaderView>
-
 #include <QMenu>
 #include <QInputDialog>
 #include <QMessageBox>
@@ -24,6 +24,15 @@ VaultWidget::VaultWidget(QWidget *parent)
 
     // Connect signals
     connect(ui->groupsTree, &QTreeWidget::itemClicked, this, &VaultWidget::onGroupSelected);
+
+    // Toolbar Connections
+    connect(ui->lockDatabaseButton, &QToolButton::clicked, this, &VaultWidget::onLockDatabase);
+    connect(ui->addEntryButton, &QToolButton::clicked, this, &VaultWidget::onAddEntry);
+    connect(ui->editEntryButton, &QToolButton::clicked, this, &VaultWidget::onEditEntry);
+    connect(ui->deleteEntryButton, &QToolButton::clicked, this, &VaultWidget::onDeleteEntry);
+    
+    // Table interactions
+    connect(ui->entriesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem*){ onEditEntry(); });
 
     // Initial Load
     refreshGroups();
@@ -161,12 +170,69 @@ void VaultWidget::onDeleteGroup() {
     }
 }
 
+void VaultWidget::onAddEntry() {
+    QTreeWidgetItem* groupItem = ui->groupsTree->currentItem();
+    if (!groupItem) {
+        QMessageBox::warning(this, tr("No Group Selected"), tr("Please select a group first."));
+        return;
+    }
+    
+    int groupId = m_groupMap.value(groupItem, -1);
+    
+    EntryDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        DatabaseManager::Entry entry = dialog.getEntry();
+        entry.groupId = groupId;
+        DatabaseManager::instance().createEntry(entry);
+        loadEntries(groupId);
+    }
+}
+
+void VaultWidget::onEditEntry() {
+    int row = ui->entriesTable->currentRow();
+    if (row < 0 || row >= m_currentEntries.size()) {
+        return;
+    }
+    
+    DatabaseManager::Entry entry = m_currentEntries.at(row);
+    EntryDialog dialog(this);
+    dialog.setEntry(entry);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        DatabaseManager::Entry updatedEntry = dialog.getEntry();
+        DatabaseManager::instance().updateEntry(updatedEntry);
+        loadEntries(entry.groupId);
+    }
+}
+
+void VaultWidget::onDeleteEntry() {
+    int row = ui->entriesTable->currentRow();
+    if (row < 0 || row >= m_currentEntries.size()) {
+        return;
+    }
+    
+    DatabaseManager::Entry entry = m_currentEntries.at(row);
+    
+    auto result = QMessageBox::question(this, tr("Delete Entry"),
+                                        tr("Are you sure you want to delete entry '%1'?").arg(entry.title),
+                                        QMessageBox::Yes | QMessageBox::No);
+    
+    if (result == QMessageBox::Yes) {
+        DatabaseManager::instance().deleteEntry(entry.id);
+        loadEntries(entry.groupId);
+    }
+}
+
+void VaultWidget::onLockDatabase() {
+    DatabaseManager::instance().closeDatabase();
+    emit lockRequested();
+}
+
 void VaultWidget::loadEntries(int groupId) {
     ui->entriesTable->setRowCount(0);
+    m_currentEntries = DatabaseManager::instance().getEntries(groupId);
     
-    QList<DatabaseManager::Entry> entries = DatabaseManager::instance().getEntries(groupId);
-    
-    for (const auto& entry : entries) {
+    for (const auto& entry : m_currentEntries) {
         int row = ui->entriesTable->rowCount();
         ui->entriesTable->insertRow(row);
         

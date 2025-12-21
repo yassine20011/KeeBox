@@ -1,7 +1,13 @@
-<RCC>
+<!DOCTYPE RCC>
+<RCC version="1.0">
   <qresource prefix="/">
     <file>logo/logo.png</file>
     <file>logo/logo_350x350.png</file>
     <file>logo/logo_1024x1024.png</file>
+
+    <file>icons/entry-new.svg</file>
+    <file>icons/entry-edit.svg</file>
+    <file>icons/entry-delete.svg</file>
+    <file>icons/database-lock.svg</file>
   </qresource>
 </RCC>

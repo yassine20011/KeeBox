@@ -50,6 +50,11 @@ void MainWindow::onCreateDatabaseRequested() {
         if (DatabaseManager::instance().createDatabase(path, password)) {
             // Success -> Go to Vault
             VaultWidget* vaultPage = new VaultWidget(this);
+            connect(vaultPage, &VaultWidget::lockRequested, this, [this, vaultPage]() {
+                m_stackedWidget->setCurrentIndex(0); // Switch to Welcome
+                m_stackedWidget->removeWidget(vaultPage);
+                vaultPage->deleteLater();
+            });
             m_stackedWidget->addWidget(vaultPage);
             m_stackedWidget->setCurrentWidget(vaultPage);
         } else {
@@ -68,6 +73,11 @@ void MainWindow::onOpenDatabaseRequested() {
         if (DatabaseManager::instance().openDatabase(path, password)) {
             // Success -> Go to Vault
             VaultWidget* vaultPage = new VaultWidget(this);
+            connect(vaultPage, &VaultWidget::lockRequested, this, [this, vaultPage]() {
+                m_stackedWidget->setCurrentIndex(0); // Switch to Welcome
+                m_stackedWidget->removeWidget(vaultPage);
+                vaultPage->deleteLater();
+            });
             m_stackedWidget->addWidget(vaultPage);
             m_stackedWidget->setCurrentWidget(vaultPage);
         } else {

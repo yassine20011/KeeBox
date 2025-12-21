@@ -146,6 +146,62 @@ bool DatabaseManager::deleteGroup(int id) {
     return success;
 }
 
+int DatabaseManager::createEntry(const Entry& entry) {
+    if (!m_db) return -1;
+    
+    sqlite3_stmt* stmt;
+    const char* query = "INSERT INTO entries (group_id, title, username, password, url, notes) VALUES (?, ?, ?, ?, ?, ?)";
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return -1;
+    
+    sqlite3_bind_int(stmt, 1, entry.groupId);
+    sqlite3_bind_text(stmt, 2, entry.title.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, entry.username.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, entry.password.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, entry.url.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 6, entry.notes.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+    
+    sqlite3_finalize(stmt);
+    return (int)sqlite3_last_insert_rowid(m_db);
+}
+
+bool DatabaseManager::updateEntry(const Entry& entry) {
+    if (!m_db) return false;
+    
+    sqlite3_stmt* stmt;
+    const char* query = "UPDATE entries SET title = ?, username = ?, password = ?, url = ?, notes = ?, modified_at = CURRENT_TIMESTAMP WHERE id = ?";
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return false;
+    
+    sqlite3_bind_text(stmt, 1, entry.title.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, entry.username.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 3, entry.password.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 4, entry.url.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 5, entry.notes.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 6, entry.id);
+    
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    return success;
+}
+
+bool DatabaseManager::deleteEntry(int id) {
+    if (!m_db) return false;
+    
+    sqlite3_stmt* stmt;
+    const char* query = "DELETE FROM entries WHERE id = ?";
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return false;
+    
+    sqlite3_bind_int(stmt, 1, id);
+    
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    return success;
+}
+
 bool DatabaseManager::createDatabase(const QString& path, const QString& password) {
     if (path.isEmpty() || password.isEmpty()) {
         qWarning() << "Database creation failed: Path or password empty";

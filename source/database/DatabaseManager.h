@@ -35,6 +35,10 @@ public:
     bool updateGroup(int id, const QString& name);
     bool deleteGroup(int id);
 
+    int createEntry(const Entry& entry);
+    bool updateEntry(const Entry& entry);
+    bool deleteEntry(int id);
+
     bool createDatabase(const QString& path, const QString& password);
     bool openDatabase(const QString& path, const QString& password);
     void closeDatabase();

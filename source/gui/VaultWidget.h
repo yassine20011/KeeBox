@@ -1,5 +1,6 @@
 #include <QMap>
 #include <QTreeWidgetItem>
+#include "../database/DatabaseManager.h"
 
 namespace Ui {
 class VaultWidget;
@@ -12,12 +13,19 @@ public:
     explicit VaultWidget(QWidget *parent = nullptr);
     ~VaultWidget();
 
+signals:
+    void lockRequested();
+
 private slots:
     void onGroupSelected(QTreeWidgetItem* item, int column);
     void showGroupsContextMenu(const QPoint& pos);
     void onAddGroup();
     void onEditGroup();
     void onDeleteGroup();
+    void onAddEntry();
+    void onEditEntry();
+    void onDeleteEntry();
+    void onLockDatabase();
 
 private:
     void refreshGroups();
@@ -26,4 +34,5 @@ private:
 
     Ui::VaultWidget *ui;
     QMap<QTreeWidgetItem*, int> m_groupMap;
+    QList<DatabaseManager::Entry> m_currentEntries;
 };
