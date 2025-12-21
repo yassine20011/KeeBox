@@ -3,12 +3,37 @@
 #include <QObject>
 #include <sqlite3.h>
 #include <QString>
+#include <QList>
 
 class DatabaseManager : public QObject {
     Q_OBJECT
 
 public:
     static DatabaseManager& instance();
+
+    struct Group {
+        int id;
+        QString name;
+        int parentId;
+    };
+
+    struct Entry {
+        int id;
+        int groupId;
+        QString title;
+        QString username;
+        QString password;
+        QString url;
+        QString notes;
+    };
+
+    // Database Logic
+    void ensureRootGroup();
+    QList<Group> getGroups(int parentId = 0);
+    QList<Entry> getEntries(int groupId);
+    int createGroup(const QString& name, int parentId = 0);
+    bool updateGroup(int id, const QString& name);
+    bool deleteGroup(int id);
 
     bool createDatabase(const QString& path, const QString& password);
     bool openDatabase(const QString& path, const QString& password);

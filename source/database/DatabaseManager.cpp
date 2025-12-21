@@ -16,6 +16,136 @@ DatabaseManager::~DatabaseManager() {
     closeDatabase();
 }
 
+void DatabaseManager::ensureRootGroup() {
+    if (!m_db) return;
+    
+    // Check if any group exists
+    sqlite3_stmt* stmt;
+    const char* query = "SELECT count(*) FROM groups";
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return;
+    
+    int count = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    }
+    sqlite3_finalize(stmt);
+    
+    if (count == 0) {
+        createGroup("Root", 0);
+    }
+}
+
+int DatabaseManager::createGroup(const QString& name, int parentId) {
+    if (!m_db) return -1;
+    
+    sqlite3_stmt* stmt;
+    const char* query = "INSERT INTO groups (name, parent_id) VALUES (?, ?)";
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return -1;
+    
+    sqlite3_bind_text(stmt, 1, name.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    if (parentId > 0) {
+        sqlite3_bind_int(stmt, 2, parentId);
+    } else {
+        sqlite3_bind_null(stmt, 2);
+    }
+    
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+    
+    sqlite3_finalize(stmt);
+    return (int)sqlite3_last_insert_rowid(m_db);
+}
+
+QList<DatabaseManager::Group> DatabaseManager::getGroups(int parentId) {
+    QList<Group> list;
+    if (!m_db) return list;
+    
+    sqlite3_stmt* stmt;
+    QString sql;
+    if (parentId == 0) {
+        sql = "SELECT id, name, parent_id FROM groups WHERE parent_id IS NULL";
+    } else {
+        sql = "SELECT id, name, parent_id FROM groups WHERE parent_id = ?";
+    }
+    
+    if (sqlite3_prepare_v2(m_db, sql.toUtf8().constData(), -1, &stmt, nullptr) != SQLITE_OK) {
+        qCritical() << "Failed to prepare getGroups:" << sqlite3_errmsg(m_db);
+        return list;
+    }
+    
+    if (parentId > 0) {
+        sqlite3_bind_int(stmt, 1, parentId);
+    }
+    
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        Group g;
+        g.id = sqlite3_column_int(stmt, 0);
+        g.name = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 1));
+        g.parentId = sqlite3_column_int(stmt, 2);
+        list.append(g);
+    }
+    
+    sqlite3_finalize(stmt);
+    return list;
+}
+
+QList<DatabaseManager::Entry> DatabaseManager::getEntries(int groupId) {
+    QList<Entry> list;
+    if (!m_db) return list;
+    
+    const char* query = "SELECT id, group_id, title, username, password, url, notes FROM entries WHERE group_id = ?";
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return list;
+    
+    sqlite3_bind_int(stmt, 1, groupId);
+    
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        Entry e;
+        e.id = sqlite3_column_int(stmt, 0);
+        e.groupId = sqlite3_column_int(stmt, 1);
+        e.title = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 2));
+        e.username = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 3));
+        e.password = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 4));
+        e.url = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 5));
+        e.notes = QString::fromUtf8((const char*)sqlite3_column_text(stmt, 6));
+        list.append(e);
+    }
+    
+    sqlite3_finalize(stmt);
+    return list;
+}
+
+bool DatabaseManager::updateGroup(int id, const QString& name) {
+    if (!m_db) return false;
+    
+    sqlite3_stmt* stmt;
+    const char* query = "UPDATE groups SET name = ? WHERE id = ?";
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return false;
+    
+    sqlite3_bind_text(stmt, 1, name.toUtf8().constData(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 2, id);
+    
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    return success;
+}
+
+bool DatabaseManager::deleteGroup(int id) {
+    if (!m_db) return false;
+    
+    sqlite3_stmt* stmt;
+    const char* query = "DELETE FROM groups WHERE id = ?";
+    if (sqlite3_prepare_v2(m_db, query, -1, &stmt, nullptr) != SQLITE_OK) return false;
+    
+    sqlite3_bind_int(stmt, 1, id);
+    
+    bool success = (sqlite3_step(stmt) == SQLITE_DONE);
+    sqlite3_finalize(stmt);
+    return success;
+}
+
 bool DatabaseManager::createDatabase(const QString& path, const QString& password) {
     if (path.isEmpty() || password.isEmpty()) {
         qWarning() << "Database creation failed: Path or password empty";
@@ -73,6 +203,13 @@ bool DatabaseManager::createDatabase(const QString& path, const QString& passwor
     
     sqlite3_exec(m_db, "DROP TABLE creation_check;", nullptr, nullptr, nullptr);
     
+    errMsg = nullptr;
+    rc = sqlite3_exec(m_db, "PRAGMA foreign_keys = ON;", nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        qWarning() << "Failed to enable foreign keys:" << (errMsg ? errMsg : "Unknown error");
+        sqlite3_free(errMsg);
+    }
+    
     // Initialize Schema
     QStringList schemaQueries;
     schemaQueries << "CREATE TABLE IF NOT EXISTS groups (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, parent_id INTEGER, FOREIGN KEY(parent_id) REFERENCES groups(id) ON DELETE CASCADE);"
@@ -96,6 +233,8 @@ bool DatabaseManager::createDatabase(const QString& path, const QString& passwor
     if (!openDatabase(path, password)) {
         return false;
     }
+    
+    ensureRootGroup();
 
     return true;
 }
@@ -145,6 +284,12 @@ bool DatabaseManager::openDatabase(const QString& path, const QString& password)
         return false;
     }
 
+    rc = sqlite3_exec(m_db, "PRAGMA foreign_keys = ON;", nullptr, nullptr, &errMsg);
+    if (rc != SQLITE_OK) {
+        qWarning() << "Failed to enable foreign keys:" << (errMsg ? errMsg : "Unknown error");
+        sqlite3_free(errMsg);
+    }
+
     // Verify correctness: Try to read sqlite_master
     rc = sqlite3_exec(m_db, "SELECT count(*) FROM sqlite_master;", nullptr, nullptr, &errMsg);
     if (rc != SQLITE_OK) {
@@ -153,6 +298,8 @@ bool DatabaseManager::openDatabase(const QString& path, const QString& password)
         closeDatabase();
         return false;
     }
+    
+    ensureRootGroup();
     
     return true;
 }
