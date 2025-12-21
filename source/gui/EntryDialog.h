@@ -19,6 +19,7 @@ public:
 
 private slots:
     void onShowPasswordToggled(bool checked);
+    void onGeneratePasswordClicked();
     void validateInput();
 
 private:

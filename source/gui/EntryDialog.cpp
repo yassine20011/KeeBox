@@ -1,5 +1,6 @@
 #include "EntryDialog.h"
 #include "ui_EntryDialog.h"
+#include "PasswordGeneratorDialog.h"
 #include <QPushButton>
 
 EntryDialog::EntryDialog(QWidget *parent) :
@@ -10,6 +11,7 @@ EntryDialog::EntryDialog(QWidget *parent) :
 
     connect(ui->showPasswordCheck, &QCheckBox::toggled, this, &EntryDialog::onShowPasswordToggled);
     connect(ui->titleEdit, &QLineEdit::textChanged, this, &EntryDialog::validateInput);
+    connect(ui->generatePasswordButton, &QToolButton::clicked, this, &EntryDialog::onGeneratePasswordClicked);
 
     validateInput();
 }
@@ -46,6 +48,14 @@ DatabaseManager::Entry EntryDialog::getEntry() const
 void EntryDialog::onShowPasswordToggled(bool checked)
 {
     ui->passwordEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
+}
+
+void EntryDialog::onGeneratePasswordClicked()
+{
+    PasswordGeneratorDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        ui->passwordEdit->setText(dialog.getGeneratedPassword());
+    }
 }
 
 void EntryDialog::validateInput()
