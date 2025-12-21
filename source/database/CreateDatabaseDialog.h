@@ -19,7 +19,7 @@ class CreateDatabaseDialog : public QDialog {
     QString getFilePath() const;
 
     private slots:
-      void onBrowseButtonClicked();
+      void onBrowseClicked();
     void validateInputs();
 
   private:

@@ -8,10 +8,10 @@
 CreateDatabaseDialog::CreateDatabaseDialog(QWidget *parent)
   : QDialog(parent), ui(new Ui::CreateDatabaseDialog) {
   ui->setupUi(this);
-  setWindowTitle(tr("Create New Database"));
+  setWindowTitle(tr("Create Database"));
 
   // Connect signals
-  connect(ui->browseButton, &QPushButton::clicked, this, &CreateDatabaseDialog::onBrowseButtonClicked);
+  connect(ui->browseButton, &QPushButton::clicked, this, &CreateDatabaseDialog::onBrowseClicked);
   connect(ui->databaseNameEdit, &QLineEdit::textChanged, this, &CreateDatabaseDialog::validateInputs);
   connect(ui->passwordEdit, &QLineEdit::textChanged, this, &CreateDatabaseDialog::validateInputs);
   connect(ui->confirmPasswordEdit, &QLineEdit::textChanged, this, &CreateDatabaseDialog::validateInputs);
@@ -41,24 +41,30 @@ QString CreateDatabaseDialog::getFilePath() const {
   return ui->filePathEdit->text();
 }
 
-void CreateDatabaseDialog::onBrowseButtonClicked() {
+void CreateDatabaseDialog::onBrowseClicked() {
   QString defaultName = getDatabaseName();
   if (defaultName.isEmpty()) {
     defaultName = "database";
   }
   defaultName += ".db";
 
-  QString fileName = QFileDialog::getSaveFileName(this,
-      tr("Save Database File"),
-      QDir::homePath() + QDir::separator() + defaultName,
-      tr("SQLCipher Database (*.db);;All Files (*)"));
+  QFileDialog dialog(nullptr, tr("Save Database File"));
+  dialog.setDirectory(QDir::homePath());
+  dialog.selectFile(defaultName);
+  dialog.setNameFilter(tr("SQLCipher Database (*.db);;All Files (*)"));
+  dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  dialog.setAcceptMode(QFileDialog::AcceptSave);
 
-  if (!fileName.isEmpty()) {
-    // Ensure the file has .db extension
-    if (!fileName.endsWith(".db", Qt::CaseInsensitive)) {
-      fileName += ".db";
+  if (dialog.exec() == QDialog::Accepted) {
+    QStringList files = dialog.selectedFiles();
+    if (!files.isEmpty()) {
+      QString fileName = files.first();
+      // Ensure the file has .db extension
+      if (!fileName.endsWith(".db", Qt::CaseInsensitive)) {
+        fileName += ".db";
+      }
+      ui->filePathEdit->setText(fileName);
     }
-    ui->filePathEdit->setText(fileName);
   }
 }
 

@@ -14,7 +14,7 @@ OpenDatabaseDialog::OpenDatabaseDialog(QWidget *parent) :
   setWindowTitle(tr("Open Database"));
 
   // Connect signals and slots
-  connect(ui->browseButton, &QPushButton::clicked, this, &OpenDatabaseDialog::on_browseButton_clicked);
+  connect(ui->browseButton, &QPushButton::clicked, this, &OpenDatabaseDialog::onBrowseClicked);
   connect(ui->showPasswordCheckBox, &QCheckBox::toggled, this, [this](bool checked) {
       ui->passwordLineEdit->setEchoMode(checked ? QLineEdit::Normal : QLineEdit::Password);
       });
@@ -42,17 +42,19 @@ QString OpenDatabaseDialog::getPassword() const {
   return ui->passwordLineEdit->text();
 }
 
-void OpenDatabaseDialog::on_browseButton_clicked() {
-  QString filePath = QFileDialog::getOpenFileName(
-      this,
-      tr("Open Database"),
-      QDir::homePath(),
-      tr("SQLite Database (*.db);;All Files (*)")
-      );
-
-  if (!filePath.isEmpty()) {
-    ui->filePathLineEdit->setText(QDir::toNativeSeparators(filePath));
-    ui->passwordLineEdit->setFocus();
+void OpenDatabaseDialog::onBrowseClicked() {
+  QFileDialog dialog(nullptr, tr("Open Database"));
+  dialog.setDirectory(QDir::homePath());
+  dialog.setNameFilter(tr("SQLite Database (*.db);;All Files (*)"));
+  dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+  dialog.setFileMode(QFileDialog::ExistingFile);
+  
+  if (dialog.exec() == QDialog::Accepted) {
+    QStringList files = dialog.selectedFiles();
+    if (!files.isEmpty()) {
+      ui->filePathLineEdit->setText(QDir::toNativeSeparators(files.first()));
+      ui->passwordLineEdit->setFocus();
+    }
   }
 }
 
