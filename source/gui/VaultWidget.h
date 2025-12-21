@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QTreeWidgetItem>
 #include <QTimer>
+#include <QEvent>
 #include "../database/DatabaseManager.h"
 
 namespace Ui {
@@ -16,6 +17,8 @@ class VaultWidget : public QWidget {
 public:
     explicit VaultWidget(QWidget *parent = nullptr);
     ~VaultWidget();
+
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
 signals:
     void lockRequested();
@@ -40,6 +43,7 @@ private:
     void refreshGroups();
     void loadGroupTree(int parentId, QTreeWidgetItem* parentItem);
     void loadEntries(int groupId);
+    void resetInactivityTimer();
 
     Ui::VaultWidget *ui;
     QMap<QTreeWidgetItem*, int> m_groupMap;
@@ -48,4 +52,6 @@ private:
     QTimer* m_clipboardTimer = nullptr;
     int m_clipboardTimerValue = 0;
     QString m_lastCopiedPassword;
+
+    QTimer* m_inactivityTimer = nullptr;
 };

@@ -46,11 +46,24 @@ VaultWidget::VaultWidget(QWidget *parent)
     m_clipboardTimer->setInterval(100);
     connect(m_clipboardTimer, &QTimer::timeout, this, &VaultWidget::updateClipboardProgress);
 
+    // Inactivity Timer (20 seconds)
+    m_inactivityTimer = new QTimer(this);
+    m_inactivityTimer->setInterval(20000); // 20s
+    m_inactivityTimer->setSingleShot(true);
+    connect(m_inactivityTimer, &QTimer::timeout, this, &VaultWidget::onLockDatabase);
+    
+    // Install event filter on application to catch all user interactions
+    qApp->installEventFilter(this);
+    m_inactivityTimer->start();
+
     // Initial Load
     refreshGroups();
 }
 
 VaultWidget::~VaultWidget() {
+    if (qApp) {
+        qApp->removeEventFilter(this);
+    }
     delete ui;
 }
 
@@ -262,6 +275,22 @@ void VaultWidget::onSearchTextChanged(const QString& text) {
         ui->entriesTable->setItem(row, 0, new QTableWidgetItem(entry.title));
         ui->entriesTable->setItem(row, 1, new QTableWidgetItem(entry.username));
         ui->entriesTable->setItem(row, 2, new QTableWidgetItem(entry.url));
+    }
+}
+
+bool VaultWidget::eventFilter(QObject* watched, QEvent* event) {
+    if (event->type() == QEvent::MouseMove || 
+        event->type() == QEvent::MouseButtonPress || 
+        event->type() == QEvent::KeyPress ||
+        event->type() == QEvent::Wheel) {
+        resetInactivityTimer();
+    }
+    return QWidget::eventFilter(watched, event);
+}
+
+void VaultWidget::resetInactivityTimer() {
+    if (m_inactivityTimer) {
+        m_inactivityTimer->start(); // Resets the 15s countdown
     }
 }
 
