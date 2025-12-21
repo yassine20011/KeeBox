@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    parent_id INTEGER,
+    FOREIGN KEY(parent_id) REFERENCES groups(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    username TEXT,
+    password TEXT,
+    url TEXT,
+    notes TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    modified_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(group_id) REFERENCES groups(id) ON DELETE CASCADE
+);

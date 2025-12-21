@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>VaultWidget</class>
+ <widget class="QWidget" name="VaultWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Vault</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QTreeWidget" name="groupsTree">
+     <property name="headerHidden">
+      <bool>false</bool>
+     </property>
+     <column>
+      <property name="text">
+       <string>Groups</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTableWidget" name="entriesTable">
+     <column>
+      <property name="text">
+       <string>Title</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Username</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>URL</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

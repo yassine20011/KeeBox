@@ -1,7 +1,7 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
 #include <QMainWindow>
+#include <QStackedWidget>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -10,14 +10,17 @@ namespace Ui {
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
-  Q_OBJECT
+    Q_OBJECT
 
-  public:
+public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-  private:
-    Ui::MainWindow *ui;
-};
+private slots:
+    void onCreateDatabaseRequested();
+    void onOpenDatabaseRequested();
 
-#endif // MAINWINDOW_H
+private:
+    Ui::MainWindow *ui;
+    QStackedWidget *m_stackedWidget;
+};

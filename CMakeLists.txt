@@ -15,6 +15,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql)
 # Find SQLCipher using pkg-config
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(SQLCipher REQUIRED IMPORTED_TARGET sqlcipher)
+message(STATUS "SQLCipher Include Dirs: ${SQLCipher_INCLUDE_DIRS}")
 
 # Find all source files
 file(GLOB_RECURSE PROJECT_SOURCES
@@ -54,17 +55,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         Qt${QT_VERSION_MAJOR}::Sql
         PkgConfig::SQLCipher
     )
-# Define target properties for Android with Qt 6 as:
-#    set_property(TARGET KeeBox APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
-#                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
-# For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
         add_library(KeeBox SHARED
             ${PROJECT_SOURCES}
         )
-# Define properties for Android with Qt 5 after find_package() calls as:
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(KeeBox
             ${PROJECT_SOURCES}
@@ -74,12 +69,14 @@ endif()
 
 target_link_libraries(KeeBox PRIVATE 
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Sql
     PkgConfig::SQLCipher
 )
 
+target_include_directories(KeeBox PRIVATE ${SQLCipher_INCLUDE_DIRS})
+add_compile_definitions(SQLITE_HAS_CODEC)
+
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
-# If you are developing for iOS or macOS you should consider setting an
-# explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.1.0)
   set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.KeeBox)
 endif()
