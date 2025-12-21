@@ -1,5 +1,9 @@
+#pragma once
+
+#include <QWidget>
 #include <QMap>
 #include <QTreeWidgetItem>
+#include <QTimer>
 #include "../database/DatabaseManager.h"
 
 namespace Ui {
@@ -27,6 +31,10 @@ private slots:
     void onDeleteEntry();
     void onLockDatabase();
     void onSearchTextChanged(const QString& text);
+    void showEntriesContextMenu(const QPoint& pos);
+    void onCopyPassword();
+    void updateClipboardProgress();
+    void clearClipboard();
 
 private:
     void refreshGroups();
@@ -36,4 +44,8 @@ private:
     Ui::VaultWidget *ui;
     QMap<QTreeWidgetItem*, int> m_groupMap;
     QList<DatabaseManager::Entry> m_currentEntries;
+    
+    QTimer* m_clipboardTimer = nullptr;
+    int m_clipboardTimerValue = 0;
+    QString m_lastCopiedPassword;
 };

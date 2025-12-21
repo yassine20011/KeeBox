@@ -7,6 +7,8 @@
 #include <QMenu>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QClipboard>
+#include <QApplication>
 
 VaultWidget::VaultWidget(QWidget *parent)
     : QWidget(parent), ui(new Ui::VaultWidget) {
@@ -35,7 +37,14 @@ VaultWidget::VaultWidget(QWidget *parent)
     connect(ui->searchLineEdit, &QLineEdit::textChanged, this, &VaultWidget::onSearchTextChanged);
     
     // Table interactions
+    ui->entriesTable->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->entriesTable, &QTableWidget::customContextMenuRequested, this, &VaultWidget::showEntriesContextMenu);
     connect(ui->entriesTable, &QTableWidget::itemDoubleClicked, this, [this](QTableWidgetItem*){ onEditEntry(); });
+
+    // Clipboard Timer
+    m_clipboardTimer = new QTimer(this);
+    m_clipboardTimer->setInterval(100);
+    connect(m_clipboardTimer, &QTimer::timeout, this, &VaultWidget::updateClipboardProgress);
 
     // Initial Load
     refreshGroups();
@@ -164,8 +173,8 @@ void VaultWidget::onDeleteGroup() {
     // If it's the last group, maybe warn more?
     
     auto result = QMessageBox::question(this, tr("Delete Group"),
-                                        tr("Are you sure you want to delete group '%1' and all its entries?").arg(item->text(0)),
-                                        QMessageBox::Yes | QMessageBox::No);
+                                         tr("Are you sure you want to delete group '%1' and all its entries?").arg(item->text(0)),
+                                         QMessageBox::Yes | QMessageBox::No);
     
     if (result == QMessageBox::Yes) {
         DatabaseManager::instance().deleteGroup(groupId);
@@ -217,8 +226,8 @@ void VaultWidget::onDeleteEntry() {
     DatabaseManager::Entry entry = m_currentEntries.at(row);
     
     auto result = QMessageBox::question(this, tr("Delete Entry"),
-                                        tr("Are you sure you want to delete entry '%1'?").arg(entry.title),
-                                        QMessageBox::Yes | QMessageBox::No);
+                                         tr("Are you sure you want to delete entry '%1'?").arg(entry.title),
+                                         QMessageBox::Yes | QMessageBox::No);
     
     if (result == QMessageBox::Yes) {
         DatabaseManager::instance().deleteEntry(entry.id);
@@ -254,6 +263,62 @@ void VaultWidget::onSearchTextChanged(const QString& text) {
         ui->entriesTable->setItem(row, 1, new QTableWidgetItem(entry.username));
         ui->entriesTable->setItem(row, 2, new QTableWidgetItem(entry.url));
     }
+}
+
+void VaultWidget::showEntriesContextMenu(const QPoint& pos) {
+    QTableWidgetItem* item = ui->entriesTable->itemAt(pos);
+    if (!item) return;
+
+    ui->entriesTable->setCurrentItem(item); // Ensure the right-clicked row is selected
+    
+    QMenu menu(this);
+    menu.addAction(tr("Copy Password"), this, &VaultWidget::onCopyPassword);
+    menu.addSeparator();
+    menu.addAction(tr("Edit Entry"), this, &VaultWidget::onEditEntry);
+    menu.addAction(tr("Delete Entry"), this, &VaultWidget::onDeleteEntry);
+
+    menu.exec(ui->entriesTable->viewport()->mapToGlobal(pos));
+}
+
+void VaultWidget::onCopyPassword() {
+    int row = ui->entriesTable->currentRow();
+    if (row < 0 || row >= m_currentEntries.size()) return;
+
+    const auto& entry = m_currentEntries.at(row);
+    m_lastCopiedPassword = entry.password;
+
+    QApplication::clipboard()->setText(m_lastCopiedPassword);
+
+    // Start 10s timer (10000ms)
+    m_clipboardTimerValue = 10000;
+    ui->clipboardProgressBar->setMaximum(10000);
+    ui->clipboardProgressBar->setValue(10000);
+    ui->clipboardProgressBar->setVisible(true);
+    ui->clipboardStatusLabel->setText(tr("Clearing the clipboard in 10 seconds..."));
+    ui->clipboardStatusLabel->setVisible(true);
+    m_clipboardTimer->start();
+}
+
+void VaultWidget::updateClipboardProgress() {
+    m_clipboardTimerValue -= 100;
+    if (m_clipboardTimerValue <= 0) {
+        clearClipboard();
+    } else {
+        ui->clipboardProgressBar->setValue(m_clipboardTimerValue);
+        int seconds = (m_clipboardTimerValue + 999) / 1000; // Round up
+        ui->clipboardStatusLabel->setText(tr("Clearing the clipboard in %1 seconds...").arg(seconds));
+    }
+}
+
+void VaultWidget::clearClipboard() {
+    m_clipboardTimer->stop();
+    ui->clipboardProgressBar->setVisible(false);
+    ui->clipboardStatusLabel->setVisible(false);
+
+    if (QApplication::clipboard()->text() == m_lastCopiedPassword) {
+        QApplication::clipboard()->clear();
+    }
+    m_lastCopiedPassword.clear();
 }
 
 void VaultWidget::loadEntries(int groupId) {
